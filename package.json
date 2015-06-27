@@ -1,7 +1,7 @@
 {
-  "name": "vapor-tradeoffers",
+  "name": "vapor-storehouse",
   "version": "1.0.0",
-  "description": "Vapor plugin to handle trade offers.",
+  "description": "Vapor plugin to create storage account via trade offers.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,7 +13,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/scholtzm/vapor-tradeoffers.git"
+    "url": "https://github.com/scholtzm/vapor-storehouse.git"
   },
   "dependencies": {
     "steam-tradeoffer-manager": "^0.1.9"

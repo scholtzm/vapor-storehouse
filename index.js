@@ -1,15 +1,13 @@
-var appinfo = require('./package.json');
-
 var fs = require('fs');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 
 module.exports = function(VaporAPI) {
 
     var utils = VaporAPI.utils;
-    var log = VaporAPI.getLogger(appinfo.name);
+    var log = VaporAPI.getLogger();
     var client = VaporAPI.getClient();
-    var config = VaporAPI.getConfig(appinfo.name);
-    var POLLDATA_PATH = VaporAPI.getPluginFolderPath(appinfo.name) + '/polldata.json';
+    var config = VaporAPI.getConfig();
+    var POLLDATA_PATH = VaporAPI.getPluginFolderPath() + '/polldata.json';
 
     var manager = new TradeOfferManager(client, null, 'en');
 
@@ -45,7 +43,7 @@ module.exports = function(VaporAPI) {
     /**
      * Register different trade offer manager handlers.
      */
-     // Data polling handler.
+    // Data polling handler.
     manager.on('pollData', function(pollData) {
         log.debug('Received new poll data.');
         fs.writeFile(POLLDATA_PATH, JSON.stringify(pollData));
@@ -93,9 +91,5 @@ module.exports = function(VaporAPI) {
             });
         }
     });
-
-
-    // Export manager into API.
-    VaporAPI.TradeOfferManager = manager;
 
 };
