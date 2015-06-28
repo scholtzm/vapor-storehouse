@@ -17,5 +17,6 @@
   },
   "dependencies": {
     "steam-tradeoffer-manager": "^0.1.9"
-  }
+  },
+  "private": true
 }

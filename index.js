@@ -3,7 +3,7 @@ var TradeOfferManager = require('steam-tradeoffer-manager');
 
 module.exports = function(VaporAPI) {
 
-    var utils = VaporAPI.utils;
+    var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
     var client = VaporAPI.getClient();
     var config = VaporAPI.getConfig();
