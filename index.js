@@ -13,7 +13,12 @@ module.exports = function(VaporAPI) {
 
     // Restore poll data if possible.
     if(fs.existsSync(POLLDATA_PATH)) {
-        manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
+        try {
+            manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
+        } catch(err) {
+            log.error('Failed to load polldata from cache.');
+            log.error(err);
+        }
     }
 
     // Register handler for event when we receive our cookies.
