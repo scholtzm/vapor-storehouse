@@ -22,27 +22,31 @@ module.exports = function(VaporAPI) {
     }
 
     // Register handler for event when we receive our cookies.
-    VaporAPI.registerHandler('vapor', 'cookies', function(cookies) {
-        manager.setCookies(cookies, function(error) {
-            if(error) {
-                log.error(err);
-                return;
-            }
+    VaporAPI.registerHandler({
+        emitter: 'vapor',
+        event: 'cookies',
+        callback: function(cookies) {
+            manager.setCookies(cookies, function(error) {
+                if(error) {
+                    log.error(err);
+                    return;
+                }
 
-            log.info('Received API key.');
+                log.info('Received API key.');
 
-            // We will also unlock family view if necessary.
-            if(config && config.familyViewPIN) {
-                manager.parentalUnlock(config.familyViewPIN, function(error) {
-                    if(error) {
-                        log.error('Error with parental unlock: ' + error);
-                        return;
-                    }
+                // We will also unlock family view if necessary.
+                if(config && config.familyViewPIN) {
+                    manager.parentalUnlock(config.familyViewPIN, function(error) {
+                        if(error) {
+                            log.error('Error with parental unlock: ' + error);
+                            return;
+                        }
 
-                    log.info('Family View has been unlocked.');
-                });
-            }
-        });
+                        log.info('Family View has been unlocked.');
+                    });
+                }
+            });
+        }
     });
 
     /**
