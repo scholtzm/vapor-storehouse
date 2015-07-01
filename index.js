@@ -7,7 +7,7 @@ module.exports = function(VaporAPI) {
     var log = VaporAPI.getLogger();
     var client = VaporAPI.getClient();
     var config = VaporAPI.getConfig();
-    var POLLDATA_PATH = VaporAPI.getPluginFolderPath() + '/polldata.json';
+    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
 
     var manager = new TradeOfferManager(client, null, 'en');
 
@@ -23,9 +23,10 @@ module.exports = function(VaporAPI) {
 
     // Register handler for event when we receive our cookies.
     VaporAPI.registerHandler({
-        emitter: 'vapor',
-        event: 'cookies',
-        callback: function(cookies) {
+            emitter: 'vapor',
+            event: 'cookies'
+        },
+        function(cookies) {
             manager.setCookies(cookies, function(error) {
                 if(error) {
                     log.error(err);
@@ -47,7 +48,7 @@ module.exports = function(VaporAPI) {
                 }
             });
         }
-    });
+    );
 
     /**
      * Register different trade offer manager handlers.
