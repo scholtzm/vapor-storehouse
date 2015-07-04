@@ -16,7 +16,7 @@
     "url": "https://github.com/scholtzm/vapor-storehouse.git"
   },
   "dependencies": {
-    "steam-tradeoffer-manager": "^0.1.9"
+    "steam-tradeoffer-manager": "^1.2.0"
   },
   "private": true
 }

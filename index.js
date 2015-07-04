@@ -9,7 +9,10 @@ module.exports = function(VaporAPI) {
     var config = VaporAPI.getConfig();
     var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
 
-    var manager = new TradeOfferManager(client, null, 'en');
+    var manager = new TradeOfferManager({
+        steam: client,
+        language: 'en'
+    });
 
     // Restore poll data if possible.
     if(fs.existsSync(POLLDATA_PATH)) {
@@ -56,7 +59,7 @@ module.exports = function(VaporAPI) {
     // Data polling handler.
     manager.on('pollData', function(pollData) {
         log.debug('Received new poll data.');
-        fs.writeFile(POLLDATA_PATH, JSON.stringify(pollData));
+        fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData));
     });
 
 
@@ -85,18 +88,24 @@ module.exports = function(VaporAPI) {
 
 
     manager.on('receivedOfferChanged', function(offer, oldState) {
-        log.info('Offer #' + offer.id + ' changed status from ' + TradeOfferManager.getStateName(oldState) + ' to ' + TradeOfferManager.getStateName(offer.state));
+        log.info('Offer #' + offer.id + ' changed status from ' +
+            TradeOfferManager.getStateName(oldState) + ' to ' +
+            TradeOfferManager.getStateName(offer.state));
 
         if(offer.state == TradeOfferManager.ETradeOfferState.Accepted) {
             offer.getReceivedItems(function(error, items) {
                 if(error) {
                     log.warn('Couldn\'t get received items: ' + error);
                 } else {
-                    var names = items.map(function(item) {
-                        return item.name;
-                    });
+                    if(items.length > 0) {
+                        var names = items.map(function(item) {
+                            return item.name;
+                        });
 
-                    log.info('Received items: ' + names.join(', '));
+                        log.info('Received items: ' + names.join(', '));
+                    } else {
+                        log.info('I have not received any items.');
+                    }
                 }
             });
         }

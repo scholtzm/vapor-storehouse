@@ -1,14 +1,11 @@
 # Vapor Store House Plugin
 
-[Vapor](https://github.com/scholtzm/vapor) plugin to create storage account via trade offers.
+[Vapor](https://github.com/scholtzm/vapor) plugin to run storage bot using trade offers.
 
 ### Features
 
-WIP
-
-### Methods
-
-WIP
+- Automatically accepts all trade offers from admin.
+- Supports Family View if you have it enabled.
 
 ### Installation
 
