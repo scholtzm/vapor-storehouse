@@ -5,12 +5,15 @@ module.exports = function(VaporAPI) {
 
     var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
-    var client = VaporAPI.getClient();
     var config = VaporAPI.getConfig();
-    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
+    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + "/polldata.json";
+
+    //var steamUser = VaporAPI.getHandler('steamUser');
+    var steamFriends = VaporAPI.getHandler('steamFriends');
 
     var manager = new TradeOfferManager({
-        steam: client,
+        // This needs to be fixed once Trade Offer Manager is updated for node-steam 1.0.0
+        //steam: steamUser,
         language: 'en'
     });
 
@@ -19,7 +22,7 @@ module.exports = function(VaporAPI) {
         try {
             manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
         } catch(err) {
-            log.error('Failed to load polldata from cache.');
+            log.error("Failed to load polldata from cache.");
             log.error(err);
         }
     }
@@ -32,21 +35,21 @@ module.exports = function(VaporAPI) {
         function(cookies) {
             manager.setCookies(cookies, function(error) {
                 if(error) {
-                    log.error(err);
+                    log.error(error);
                     return;
                 }
 
-                log.info('Received API key.');
+                log.info("Received API key.");
 
                 // We will also unlock family view if necessary.
                 if(config && config.familyViewPIN) {
                     manager.parentalUnlock(config.familyViewPIN, function(error) {
                         if(error) {
-                            log.error('Error with parental unlock: ' + error);
+                            log.error("Error with parental unlock: " + error);
                             return;
                         }
 
-                        log.info('Family View has been unlocked.');
+                        log.info("Family View has been unlocked.");
                     });
                 }
             });
@@ -58,53 +61,53 @@ module.exports = function(VaporAPI) {
      */
     // Data polling handler.
     manager.on('pollData', function(pollData) {
-        log.debug('Received new poll data.');
+        log.debug("Received new poll data.");
         fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData));
     });
 
 
     manager.on('newOffer', function(offer) {
         var sid = offer.partner.getSteamID64();
-        var username = client.users[sid] !== undefined ? ' (' + client.users[sid].playerName + ')' : '';
+        var username = steamFriends.personaStates[sid] !== undefined ? ' (' + steamFriends.personaStates[sid].player_name + ')' : '';
 
-        log.info('New offer #' + offer.id + ' from ' + sid + username);
+        log.info("New offer #" + offer.id + " from " + sid + username);
 
         if(utils.isAdmin(sid)) {
             offer.accept(function(error) {
                 if(error)
-                    log.warn('Trade offer was not accepted. Retrying ...');
+                    log.warn("Trade offer was not accepted. Retrying ...");
                 else
-                    log.info('Trade offer was accepted successfully.');
+                    log.info("Trade offer was accepted successfully.");
             });
         } else {
             offer.decline(function(error) {
                 if(error)
-                    log.warn('Trade offer was not declined.');
+                    log.warn("Trade offer was not declined.");
                 else
-                    log.info('Trade offer was declined successfully.');
+                    log.info("Trade offer was declined successfully.");
             });
         }
     });
 
 
     manager.on('receivedOfferChanged', function(offer, oldState) {
-        log.info('Offer #' + offer.id + ' changed status from ' +
-            TradeOfferManager.getStateName(oldState) + ' to ' +
+        log.info("Offer #" + offer.id + " changed status from " +
+            TradeOfferManager.getStateName(oldState) + " to " +
             TradeOfferManager.getStateName(offer.state));
 
-        if(offer.state == TradeOfferManager.ETradeOfferState.Accepted) {
+        if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
             offer.getReceivedItems(function(error, items) {
                 if(error) {
-                    log.warn('Couldn\'t get received items: ' + error);
+                    log.warn("Couldn\'t get received items: " + error);
                 } else {
                     if(items.length > 0) {
                         var names = items.map(function(item) {
                             return item.name;
                         });
 
-                        log.info('Received items: ' + names.join(', '));
+                        log.info("Received items: " + names.join(", "));
                     } else {
-                        log.info('I have not received any items.');
+                        log.info("I have not received any items.");
                     }
                 }
             });
