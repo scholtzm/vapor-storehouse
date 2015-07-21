@@ -8,12 +8,11 @@ module.exports = function(VaporAPI) {
     var config = VaporAPI.getConfig();
     var POLLDATA_PATH = VaporAPI.getDataFolderPath() + "/polldata.json";
 
-    //var steamUser = VaporAPI.getHandler('steamUser');
+    var steamUser = VaporAPI.getHandler('steamUser');
     var steamFriends = VaporAPI.getHandler('steamFriends');
 
     var manager = new TradeOfferManager({
-        // This needs to be fixed once Trade Offer Manager is updated for node-steam 1.0.0
-        //steam: steamUser,
+        steam: steamUser,
         language: 'en'
     });
 
