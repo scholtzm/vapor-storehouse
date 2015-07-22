@@ -74,16 +74,16 @@ module.exports = function(VaporAPI) {
         if(utils.isAdmin(sid)) {
             offer.accept(function(error) {
                 if(error)
-                    log.warn("Trade offer was not accepted. Retrying ...");
+                    log.warn("Trade offer has not been accepted. Retrying ...");
                 else
-                    log.info("Trade offer was accepted successfully.");
+                    log.info("Trade offer has been accepted successfully.");
             });
         } else {
             offer.decline(function(error) {
                 if(error)
-                    log.warn("Trade offer was not declined.");
+                    log.warn("Trade offer has not been declined.");
                 else
-                    log.info("Trade offer was declined successfully.");
+                    log.info("Trade offer has been declined successfully.");
             });
         }
     });
