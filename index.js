@@ -5,11 +5,10 @@ module.exports = function(VaporAPI) {
 
     var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
-    var config = VaporAPI.getConfig();
+    var config = VaporAPI.getConfig().plugins[VaporAPI.pluginName];
     var POLLDATA_PATH = VaporAPI.getDataFolderPath() + "/polldata.json";
 
     var steamUser = VaporAPI.getHandler('steamUser');
-    var steamFriends = VaporAPI.getHandler('steamFriends');
 
     var manager = new TradeOfferManager({
         steam: steamUser,
@@ -58,7 +57,8 @@ module.exports = function(VaporAPI) {
     /**
      * Register different trade offer manager handlers.
      */
-    // Data polling handler.
+    manager.on('debug', log.verbose);
+
     manager.on('pollData', function(pollData) {
         log.debug("Received new poll data.");
         fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData));
@@ -67,14 +67,14 @@ module.exports = function(VaporAPI) {
 
     manager.on('newOffer', function(offer) {
         var sid = offer.partner.getSteamID64();
-        var username = steamFriends.personaStates[sid] !== undefined ? ' (' + steamFriends.personaStates[sid].player_name + ')' : '';
+        var user = utils.getUserDescription(sid);
 
-        log.info("New offer #" + offer.id + " from " + sid + username);
+        log.info("New offer #" + offer.id + " from " + user);
 
         if(utils.isAdmin(sid)) {
             offer.accept(function(error) {
                 if(error)
-                    log.warn("Trade offer has not been accepted. Retrying ...");
+                    log.warn("Trade offer has not been accepted. I'll keep retrying ...");
                 else
                     log.info("Trade offer has been accepted successfully.");
             });

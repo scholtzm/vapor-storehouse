@@ -1,6 +1,6 @@
 {
   "name": "vapor-storehouse",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Vapor plugin to create storage account using trade offers.",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "url": "https://github.com/scholtzm/vapor-storehouse.git"
   },
   "dependencies": {
-    "steam-tradeoffer-manager": "^1.2.3"
+    "steam-tradeoffer-manager": "^1.2.4"
   },
   "private": true
 }
