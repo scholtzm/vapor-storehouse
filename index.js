@@ -3,6 +3,8 @@ var TradeOfferManager = require('steam-tradeoffer-manager');
 
 module.exports = function(VaporAPI) {
 
+    var RETRY_TIME = 5000;
+
     var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
     var config = VaporAPI.getConfig().plugins[VaporAPI.pluginName];
@@ -15,6 +17,37 @@ module.exports = function(VaporAPI) {
         language: 'en'
     });
 
+    function setup(cookies) {
+        manager.setCookies(cookies, function(error) {
+            if(error) {
+                log.error("Error while retrieving API key: " + error);
+                log.error("Retrying...");
+
+                setTimeout(setup, RETRY_TIME, cookies);
+
+                return;
+            }
+
+            log.info("Received API key.");
+
+            // We will also unlock family view if necessary.
+            if(config && config.familyViewPIN) {
+                manager.parentalUnlock(config.familyViewPIN, function(error) {
+                    if(error) {
+                        log.error("Error while doing parental unlock: " + error);
+                        log.error("Retrying...");
+
+                        setTimeout(setup, RETRY_TIME, cookies);
+
+                        return;
+                    }
+
+                    log.info("Family View has been unlocked.");
+                });
+            }
+        });
+    }
+
     // Restore poll data if possible.
     if(fs.existsSync(POLLDATA_PATH)) {
         try {
@@ -26,33 +59,7 @@ module.exports = function(VaporAPI) {
     }
 
     // Register handler for event when we receive our cookies.
-    VaporAPI.registerHandler({
-            emitter: 'vapor',
-            event: 'cookies'
-        },
-        function(cookies) {
-            manager.setCookies(cookies, function(error) {
-                if(error) {
-                    log.error(error);
-                    return;
-                }
-
-                log.info("Received API key.");
-
-                // We will also unlock family view if necessary.
-                if(config && config.familyViewPIN) {
-                    manager.parentalUnlock(config.familyViewPIN, function(error) {
-                        if(error) {
-                            log.error("Error with parental unlock: " + error);
-                            return;
-                        }
-
-                        log.info("Family View has been unlocked.");
-                    });
-                }
-            });
-        }
-    );
+    VaporAPI.registerHandler({emitter: 'vapor', event: 'cookies'}, setup);
 
     /**
      * Register different trade offer manager handlers.
@@ -64,6 +71,10 @@ module.exports = function(VaporAPI) {
         fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData));
     });
 
+    manager.on('pollFailure', function(error) {
+        log.error("Polling error detected. SteamCommunity.com is probably down.");
+        log.error(error);
+    });
 
     manager.on('newOffer', function(offer) {
         var sid = offer.partner.getSteamID64();
@@ -87,7 +98,6 @@ module.exports = function(VaporAPI) {
             });
         }
     });
-
 
     manager.on('receivedOfferChanged', function(offer, oldState) {
         log.info("Offer #" + offer.id + " changed status from " +
