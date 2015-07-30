@@ -19,7 +19,7 @@ module.exports = function(VaporAPI) {
     function setup(cookies) {
         manager.setCookies(cookies, function(error) {
             if(error) {
-                log.error('Error while retrieving API key: ' + error);
+                log.error('Error while retrieving API key: %s', error);
                 log.error('Retrying...');
 
                 setTimeout(setup, RETRY_TIME, cookies);
@@ -33,7 +33,7 @@ module.exports = function(VaporAPI) {
             if(config && config.familyViewPIN) {
                 manager.parentalUnlock(config.familyViewPIN, function(error) {
                     if(error) {
-                        log.error('Error while doing parental unlock: ' + error);
+                        log.error('Error while doing parental unlock: %s', error);
                         log.error('Retrying...');
 
                         setTimeout(setup, RETRY_TIME, cookies);
@@ -62,7 +62,7 @@ module.exports = function(VaporAPI) {
     function getReceivedItems(offer) {
         offer.getReceivedItems(function(error, items) {
             if(error) {
-                log.warn('Couldn\'t get received items: ' + error);
+                log.warn('Couldn\'t get received items: %s', error);
                 log.warn('Retrying...');
 
                 setTimeout(getReceivedItems, RETRY_TIME, offer);
@@ -85,8 +85,8 @@ module.exports = function(VaporAPI) {
         try {
             manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
         } catch(err) {
-            log.error('Failed to load polldata from cache.');
-            log.error(err);
+            log.warn('Failed to load polldata from cache.');
+            log.warn(err);
         }
     }
 
@@ -127,8 +127,9 @@ module.exports = function(VaporAPI) {
     });
 
     manager.on('receivedOfferChanged', function(offer, oldState) {
-        log.info('Offer #' + offer.id + ' changed status from ' +
-            TradeOfferManager.getStateName(oldState) + ' to ' +
+        log.info('Offer #%s changed status from %s to %s',
+            offer.id,
+            TradeOfferManager.getStateName(oldState),
             TradeOfferManager.getStateName(offer.state));
 
         if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
