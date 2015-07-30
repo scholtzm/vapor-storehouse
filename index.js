@@ -7,7 +7,7 @@ module.exports = function(VaporAPI) {
     var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
     var config = VaporAPI.getConfig().plugins[VaporAPI.pluginName];
-    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + "/polldata.json";
+    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
 
     var steamUser = VaporAPI.getHandler('steamUser');
 
@@ -19,29 +19,29 @@ module.exports = function(VaporAPI) {
     function setup(cookies) {
         manager.setCookies(cookies, function(error) {
             if(error) {
-                log.error("Error while retrieving API key: " + error);
-                log.error("Retrying...");
+                log.error('Error while retrieving API key: ' + error);
+                log.error('Retrying...');
 
                 setTimeout(setup, RETRY_TIME, cookies);
 
                 return;
             }
 
-            log.info("Received API key.");
+            log.info('Received API key.');
 
             // We will also unlock family view if necessary.
             if(config && config.familyViewPIN) {
                 manager.parentalUnlock(config.familyViewPIN, function(error) {
                     if(error) {
-                        log.error("Error while doing parental unlock: " + error);
-                        log.error("Retrying...");
+                        log.error('Error while doing parental unlock: ' + error);
+                        log.error('Retrying...');
 
                         setTimeout(setup, RETRY_TIME, cookies);
 
                         return;
                     }
 
-                    log.info("Family View has been unlocked.");
+                    log.info('Family View has been unlocked.');
                 });
             }
         });
@@ -50,11 +50,11 @@ module.exports = function(VaporAPI) {
     function declineOffer(offer) {
         offer.decline(function(error) {
             if(error) {
-                log.warn("Trade offer has not been declined. Retrying ...");
+                log.warn('Trade offer has not been declined. Retrying ...');
 
                 setTimeout(declineOffer, RETRY_TIME, offer);
             } else {
-                log.info("Trade offer has been declined successfully.");
+                log.info('Trade offer has been declined successfully.');
             }
         });
     }
@@ -62,8 +62,8 @@ module.exports = function(VaporAPI) {
     function getReceivedItems(offer) {
         offer.getReceivedItems(function(error, items) {
             if(error) {
-                log.warn("Couldn\'t get received items: " + error);
-                log.warn("Retrying...");
+                log.warn('Couldn\'t get received items: ' + error);
+                log.warn('Retrying...');
 
                 setTimeout(getReceivedItems, RETRY_TIME, offer);
             } else {
@@ -72,9 +72,9 @@ module.exports = function(VaporAPI) {
                         return item.name;
                     });
 
-                    log.info("Received items: " + names.join(", "));
+                    log.info('Received items: ' + names.join(', '));
                 } else {
-                    log.info("I have not received any items.");
+                    log.info('I have not received any items.');
                 }
             }
         });
@@ -85,7 +85,7 @@ module.exports = function(VaporAPI) {
         try {
             manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
         } catch(err) {
-            log.error("Failed to load polldata from cache.");
+            log.error('Failed to load polldata from cache.');
             log.error(err);
         }
     }
@@ -99,12 +99,12 @@ module.exports = function(VaporAPI) {
     manager.on('debug', log.verbose);
 
     manager.on('pollData', function(pollData) {
-        log.debug("Received new poll data.");
+        log.debug('Received new poll data.');
         fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData, null, 2));
     });
 
     manager.on('pollFailure', function(error) {
-        log.error("Polling error detected. SteamCommunity.com is probably down.");
+        log.error('Polling error detected. SteamCommunity.com is probably down.');
         log.error(error);
     });
 
@@ -112,14 +112,14 @@ module.exports = function(VaporAPI) {
         var sid = offer.partner.getSteamID64();
         var user = utils.getUserDescription(sid);
 
-        log.info("New offer #" + offer.id + " from " + user);
+        log.info('New offer #' + offer.id + ' from ' + user);
 
         if(utils.isAdmin(sid)) {
             offer.accept(function(error) {
                 if(error)
-                    log.warn("Trade offer has not been accepted. I'll keep retrying ...");
+                    log.warn('Trade offer has not been accepted. I\'ll keep retrying ...');
                 else
-                    log.info("Trade offer has been accepted successfully.");
+                    log.info('Trade offer has been accepted successfully.');
             });
         } else {
             declineOffer(offer);
@@ -127,8 +127,8 @@ module.exports = function(VaporAPI) {
     });
 
     manager.on('receivedOfferChanged', function(offer, oldState) {
-        log.info("Offer #" + offer.id + " changed status from " +
-            TradeOfferManager.getStateName(oldState) + " to " +
+        log.info('Offer #' + offer.id + ' changed status from ' +
+            TradeOfferManager.getStateName(oldState) + ' to ' +
             TradeOfferManager.getStateName(offer.state));
 
         if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
