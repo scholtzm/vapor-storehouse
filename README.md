@@ -6,7 +6,7 @@
 
 ### Features
 
-- Automatically accepts all trade offers from admin.
+- Automatically accepts all trade offers from admin(s).
 - Automatically declines any other trade offer.
 - Supports Family View if you have it enabled.
 

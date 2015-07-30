@@ -2,7 +2,6 @@ var fs = require('fs');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 
 module.exports = function(VaporAPI) {
-
     var RETRY_TIME = 5000;
 
     var utils = VaporAPI.getUtils();
@@ -48,6 +47,39 @@ module.exports = function(VaporAPI) {
         });
     }
 
+    function declineOffer(offer) {
+        offer.decline(function(error) {
+            if(error) {
+                log.warn("Trade offer has not been declined. Retrying ...");
+
+                setTimeout(declineOffer, RETRY_TIME, offer);
+            } else {
+                log.info("Trade offer has been declined successfully.");
+            }
+        });
+    }
+
+    function getReceivedItems(offer) {
+        offer.getReceivedItems(function(error, items) {
+            if(error) {
+                log.warn("Couldn\'t get received items: " + error);
+                log.warn("Retrying...");
+
+                setTimeout(getReceivedItems, RETRY_TIME, offer);
+            } else {
+                if(items.length > 0) {
+                    var names = items.map(function(item) {
+                        return item.name;
+                    });
+
+                    log.info("Received items: " + names.join(", "));
+                } else {
+                    log.info("I have not received any items.");
+                }
+            }
+        });
+    }
+
     // Restore poll data if possible.
     if(fs.existsSync(POLLDATA_PATH)) {
         try {
@@ -68,7 +100,7 @@ module.exports = function(VaporAPI) {
 
     manager.on('pollData', function(pollData) {
         log.debug("Received new poll data.");
-        fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData));
+        fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData, null, 2));
     });
 
     manager.on('pollFailure', function(error) {
@@ -90,12 +122,7 @@ module.exports = function(VaporAPI) {
                     log.info("Trade offer has been accepted successfully.");
             });
         } else {
-            offer.decline(function(error) {
-                if(error)
-                    log.warn("Trade offer has not been declined.");
-                else
-                    log.info("Trade offer has been declined successfully.");
-            });
+            declineOffer(offer);
         }
     });
 
@@ -105,21 +132,7 @@ module.exports = function(VaporAPI) {
             TradeOfferManager.getStateName(offer.state));
 
         if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-            offer.getReceivedItems(function(error, items) {
-                if(error) {
-                    log.warn("Couldn\'t get received items: " + error);
-                } else {
-                    if(items.length > 0) {
-                        var names = items.map(function(item) {
-                            return item.name;
-                        });
-
-                        log.info("Received items: " + names.join(", "));
-                    } else {
-                        log.info("I have not received any items.");
-                    }
-                }
-            });
+            getReceivedItems(offer);
         }
     });
 
