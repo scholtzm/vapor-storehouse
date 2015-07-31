@@ -1,6 +1,6 @@
-# Vapor Store House Plugin
-
 [![Dependency Status](https://david-dm.org/scholtzm/vapor-storehouse.svg)](https://david-dm.org/scholtzm/vapor-storehouse)
+
+# Vapor Store House Plugin
 
 [Vapor](https://github.com/scholtzm/vapor) plugin to run storage bot using trade offers.
 
