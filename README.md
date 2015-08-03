@@ -1,8 +1,9 @@
+[![NPM version](http://img.shields.io/npm/v/vapor-storehouse.svg?style=flat)](https://www.npmjs.org/package/vapor-storehouse)
 [![Dependency Status](https://david-dm.org/scholtzm/vapor-storehouse.svg)](https://david-dm.org/scholtzm/vapor-storehouse)
 
 # Vapor Store House Plugin
 
-[Vapor](https://github.com/scholtzm/vapor) plugin to run storage bot using trade offers.
+[Vapor](https://github.com/scholtzm/vapor) plugin to create storage account using trade offers.
 
 ### Features
 
@@ -12,27 +13,23 @@
 
 ### Installation
 
-1. Go to your Vapor folder.
-2. Run `npm install git+https://github.com/scholtzm/vapor-storehouse.git`.
-3. Open your config file and update `plugins` to include settings for this plugin. It should look something like this...
-
-```json
-"plugins": {
-  "vapor-storehouse": {}
-}
+```sh
+npm install vapor-storehouse
 ```
 
-... or like this ...
+### Usage
 
-```json
-"plugins": {
-  "vapor-storehouse": {
-    "familyViewPIN": "1234"
-  }
-}
+```js
+var storehouse = require('vapor-storehouse');
+
+// Instantiate Vapor etc.
+
+vapor.use(storehouse);
+// or
+vapor.use(storehouse, {config: {familyViewPIN: '1234'}});
 ```
 
-### Settings
+### Configuration
 
 #### `familyViewPIN` (optional)
 

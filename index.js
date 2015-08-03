@@ -1,12 +1,14 @@
 var fs = require('fs');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 
-module.exports = function(VaporAPI) {
+exports.name = 'vapor-storehouse';
+
+exports.plugin = function(VaporAPI) {
     var RETRY_TIME = 5000;
 
     var utils = VaporAPI.getUtils();
     var log = VaporAPI.getLogger();
-    var config = VaporAPI.getConfig().plugins[VaporAPI.pluginName];
+    var config = (VaporAPI.data && VaporAPI.data.config) ? VaporAPI.data.config : {};
     var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
 
     var steamUser = VaporAPI.getHandler('steamUser');
