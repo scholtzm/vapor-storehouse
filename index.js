@@ -106,8 +106,8 @@ exports.plugin = function(VaporAPI) {
     });
 
     manager.on('pollFailure', function(error) {
-        log.error('Polling error detected. SteamCommunity.com is probably down.');
-        log.error(error);
+        log.warn('Polling error detected. SteamCommunity.com is probably down.');
+        log.warn(error);
     });
 
     manager.on('newOffer', function(offer) {

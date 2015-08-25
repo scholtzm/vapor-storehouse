@@ -14,7 +14,7 @@
 ### Installation
 
 ```sh
-npm install vapor-storehouse --save
+npm install vapor-storehouse
 ```
 
 ### Usage
