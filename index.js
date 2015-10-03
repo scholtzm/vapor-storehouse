@@ -1,16 +1,16 @@
 var fs = require('fs');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 
-exports.name = 'vapor-storehouse';
+var PLUGIN_NAME = 'vapor-storehouse';
+
+exports.name = PLUGIN_NAME;
 
 exports.plugin = function(VaporAPI) {
     var RETRY_TIME = 5000;
+    var POLLDATA_FILENAME = 'polldata.json';
 
     var utils = VaporAPI.getUtils();
-    var log = VaporAPI.getLogger();
-    var config = (VaporAPI.data && VaporAPI.data.config) ? VaporAPI.data.config : {};
-    var POLLDATA_PATH = VaporAPI.getDataFolderPath() + '/polldata.json';
-
+    var config = VaporAPI.data || {};
     var steamUser = VaporAPI.getHandler('steamUser');
 
     var manager = new TradeOfferManager({
@@ -21,29 +21,29 @@ exports.plugin = function(VaporAPI) {
     function setup(cookies) {
         manager.setCookies(cookies, function(error) {
             if(error) {
-                log.error('Error while retrieving API key: %s', error);
-                log.error('Retrying...');
+                VaporAPI.emitEvent('message:error', 'Error while retrieving API key: ' + error);
+                VaporAPI.emitEvent('message:error', 'Retrying...');
 
                 setTimeout(setup, RETRY_TIME, cookies);
 
                 return;
             }
 
-            log.info('Received API key.');
+            VaporAPI.emitEvent('message:info', 'Received API key.');
 
             // We will also unlock family view if necessary.
             if(config && config.familyViewPIN) {
                 manager.parentalUnlock(config.familyViewPIN, function(error) {
                     if(error) {
-                        log.error('Error while doing parental unlock: %s', error);
-                        log.error('Retrying...');
+                        VaporAPI.emitEvent('message:error', 'Error while doing parental unlock: ' + error);
+                        VaporAPI.emitEvent('message:error', 'Retrying...');
 
                         setTimeout(setup, RETRY_TIME, cookies);
 
                         return;
                     }
 
-                    log.info('Family View has been unlocked.');
+                    VaporAPI.emitEvent('message:info', 'Family View has been unlocked.');
                 });
             }
         });
@@ -52,11 +52,11 @@ exports.plugin = function(VaporAPI) {
     function declineOffer(offer) {
         offer.decline(function(error) {
             if(error) {
-                log.warn('Trade offer has not been declined. Retrying ...');
+                VaporAPI.emitEvent('message:warn', 'Trade offer has not been declined. Retrying...');
 
                 setTimeout(declineOffer, RETRY_TIME, offer);
             } else {
-                log.info('Trade offer has been declined successfully.');
+                VaporAPI.emitEvent('message:info', 'Trade offer has been declined successfully.');
             }
         });
     }
@@ -64,8 +64,8 @@ exports.plugin = function(VaporAPI) {
     function getReceivedItems(offer) {
         offer.getReceivedItems(function(error, items) {
             if(error) {
-                log.warn('Couldn\'t get received items: %s', error);
-                log.warn('Retrying...');
+                VaporAPI.emitEvent('message:warn', 'Couldn\'t get received items: ' + error);
+                VaporAPI.emitEvent('message:warn', 'Retrying...');
 
                 setTimeout(getReceivedItems, RETRY_TIME, offer);
             } else {
@@ -74,74 +74,96 @@ exports.plugin = function(VaporAPI) {
                         return item.name;
                     });
 
-                    log.info('Received items: ' + names.join(', '));
+                    VaporAPI.emitEvent('message:info', 'Received items: ' + names.join(', '));
                 } else {
-                    log.info('I have not received any items.');
+                    VaporAPI.emitEvent('message:info', 'I have not received any items.');
                 }
             }
         });
     }
 
-    // Restore poll data if possible.
-    if(fs.existsSync(POLLDATA_PATH)) {
-        try {
-            manager.pollData = JSON.parse(fs.readFileSync(POLLDATA_PATH));
-        } catch(err) {
-            log.warn('Failed to load polldata from cache.');
-            log.warn(err);
-        }
-    }
+    function init() {
+        // Register handler for event when we receive our cookies.
+        VaporAPI.registerHandler({emitter: 'vapor', event: 'cookies'}, setup);
 
-    // Register handler for event when we receive our cookies.
-    VaporAPI.registerHandler({emitter: 'vapor', event: 'cookies'}, setup);
-
-    /**
-     * Register different trade offer manager handlers.
-     */
-    manager.on('debug', log.verbose);
-
-    manager.on('pollData', function(pollData) {
-        log.debug('Received new poll data.');
-        fs.writeFileSync(POLLDATA_PATH, JSON.stringify(pollData, null, 2));
-    });
-
-    manager.on('pollFailure', function(error) {
-        log.warn('Polling error detected. SteamCommunity.com is probably down.');
-        log.warn(error);
-    });
-
-    manager.on('newOffer', function(offer) {
-        var sid = offer.partner.getSteamID64();
-        var user = utils.getUserDescription(sid);
-
-        log.info('New offer #' + offer.id + ' from ' + user);
-
-        if(utils.isAdmin(sid)) {
-            offer.accept(function(error) {
+        /**
+         * Register different trade offer manager handlers.
+         */
+        manager.on('pollData', function(pollData) {
+            VaporAPI.emitEvent('message:debug', 'Received new poll data.');
+            VaporAPI.emitEvent('writeFile', POLLDATA_FILENAME, JSON.stringify(pollData, null, 2), function(error) {
                 if(error) {
-                    if(error.cause) {
-                        log.warn('Trade offer cannot be accepted. Reason: %s', error.cause);
-                    } else {
-                        log.warn('Trade offer has not been accepted. I\'ll keep retrying ...');
-                    }
-                } else {
-                    log.info('Trade offer has been accepted successfully.');
+                    VaporAPI.emitEvent('message:warn', '`writeFile` event handler returned error.');
+                    VaporAPI.emitEvent('debug', error);
                 }
             });
-        } else {
-            declineOffer(offer);
-        }
-    });
+        });
 
-    manager.on('receivedOfferChanged', function(offer, oldState) {
-        log.info('Offer #%s changed status from %s to %s',
-            offer.id,
-            TradeOfferManager.getStateName(oldState),
-            TradeOfferManager.getStateName(offer.state));
+        manager.on('pollFailure', function(error) {
+            VaporAPI.emitEvent('message:warn', 'Polling error detected. SteamCommunity.com is probably down.');
+            VaporAPI.emitEvent('debug', error);
+        });
 
-        if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-            getReceivedItems(offer);
-        }
-    });
+        manager.on('newOffer', function(offer) {
+            var sid = offer.partner.getSteamID64();
+            var user = utils.getUserDescription(sid);
+
+            VaporAPI.emitEvent('message:info', 'New offer #' + offer.id + ' from ' + user);
+
+            if(utils.isAdmin(sid)) {
+                offer.accept(function(error) {
+                    if(error) {
+                        if(error.cause) {
+                            VaporAPI.emitEvent('message:warn', 'Trade offer cannot be accepted. Reason: ' + error.cause);
+                        } else {
+                            VaporAPI.emitEvent('message:warn', 'Trade offer has not been accepted. I\'ll keep retrying...');
+                        }
+                    } else {
+                        VaporAPI.emitEvent('message:info', 'Trade offer has been accepted successfully.');
+                    }
+                });
+            } else {
+                declineOffer(offer);
+            }
+        });
+
+        manager.on('receivedOfferChanged', function(offer, oldState) {
+            VaporAPI.emitEvent('message:info',
+                'Offer #' +
+                offer.id +
+                ' changed status from ' +
+                TradeOfferManager.getStateName(oldState) +
+                ' to ' +
+                TradeOfferManager.getStateName(offer.state));
+
+            if(offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
+                getReceivedItems(offer);
+            }
+        });
+    }
+
+    // Main entry point
+    var hasFileHandler =
+        VaporAPI.hasHandler({emitter: 'plugin', plugin: PLUGIN_NAME, event: 'readFile'}) ||
+        VaporAPI.hasHandler({emitter: '*', event: 'readFile'});
+
+    if(hasFileHandler) {
+        VaporAPI.emitEvent('readFile', POLLDATA_FILENAME, function(error, data) {
+            if(error) {
+                VaporAPI.emitEvent('debug', error);
+                init();
+            } else {
+                try {
+                    manager.pollData = JSON.parse(data);
+                } catch(e) {
+                    VaporAPI.emitEvent('message:warn', 'Failed to load polldata from cache.');
+                    VaporAPI.emitEvent('debug', error);
+                }
+                init();
+            }
+        });
+    } else {
+        init();
+    }
 
 };

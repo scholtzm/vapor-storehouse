@@ -26,7 +26,7 @@ var storehouse = require('vapor-storehouse');
 
 vapor.use(storehouse);
 // or
-vapor.use(storehouse, {config: {familyViewPIN: '1234'}});
+vapor.use(storehouse, {familyViewPIN: '1234'});
 ```
 
 ### Configuration
@@ -34,6 +34,14 @@ vapor.use(storehouse, {config: {familyViewPIN: '1234'}});
 #### `familyViewPIN` (optional)
 
 Family view PIN.
+
+### Events
+
+#### `message:*`
+
+* `message` - A message string.
+
+Standard [message events](https://github.com/scholtzm/vapor/blob/master/docs/EVENTS.md#message) to be used with logger.
 
 ### License
 
