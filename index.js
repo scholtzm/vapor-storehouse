@@ -144,7 +144,11 @@ exports.plugin = function(VaporAPI) {
 
     // Main entry point
     var hasFileHandler =
+        // concrete
         VaporAPI.hasHandler({emitter: 'plugin', plugin: PLUGIN_NAME, event: 'readFile'}) ||
+        // any plugin
+        VaporAPI.hasHandler({emitter: 'plugin', plugin: '*', event: 'readFile'}) ||
+        // any emitter
         VaporAPI.hasHandler({emitter: '*', event: 'readFile'});
 
     if(hasFileHandler) {
