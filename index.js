@@ -1,8 +1,6 @@
 var TradeOfferManager = require('steam-tradeoffer-manager');
 
-var PLUGIN_NAME = 'vapor-storehouse';
-
-exports.name = PLUGIN_NAME;
+exports.name = 'vapor-storehouse';
 
 exports.plugin = function(VaporAPI) {
   var RETRY_TIME = 5000;
