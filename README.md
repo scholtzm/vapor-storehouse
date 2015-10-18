@@ -43,6 +43,10 @@ Family view PIN.
 
 Standard [message events](https://github.com/scholtzm/vapor/blob/master/docs/EVENTS.md#message) to be used with logger.
 
+#### `readFile` / `writeFile`
+
+Standard Vapor file events - [`readFile`](https://github.com/scholtzm/vapor/blob/master/docs/EVENTS.md#readfile) / [`writeFile`](https://github.com/scholtzm/vapor/blob/master/docs/EVENTS.md#writefile).
+
 ### License
 
 MIT. See `LICENSE`.

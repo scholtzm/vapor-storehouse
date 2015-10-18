@@ -140,28 +140,22 @@ exports.plugin = function(VaporAPI) {
     }
 
     // Main entry point
-    var hasFileHandler =
-        // concrete
-        VaporAPI.hasHandler({emitter: 'plugin', plugin: PLUGIN_NAME, event: 'readFile'}) ||
-        // any plugin
-        VaporAPI.hasHandler({emitter: 'plugin', plugin: '*', event: 'readFile'}) ||
-        // any emitter
-        VaporAPI.hasHandler({emitter: '*', event: 'readFile'});
+    var hasFileHandler = VaporAPI.hasHandler('readFile');
 
     if(hasFileHandler) {
         VaporAPI.emitEvent('readFile', POLLDATA_FILENAME, function(error, data) {
             if(error) {
+                log.warn('Failed to load polldata from cache.');
                 VaporAPI.emitEvent('debug', error);
-                init();
             } else {
                 try {
                     manager.pollData = JSON.parse(data);
-                } catch(e) {
-                    log.warn('Failed to load polldata from cache.');
-                    VaporAPI.emitEvent('debug', error);
+                } catch(exception) {
+                    log.warn('Failed to parse polldata.');
+                    VaporAPI.emitEvent('debug', exception);
                 }
-                init();
             }
+            init();
         });
     } else {
         init();
